@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>من سيريح المليون - تركيب الذرة والنظائر</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            color: #fff;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .game-container {
+            background: rgba(25, 25, 50, 0.9);
+            border: 3px solid #f39c12;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 700px;
+            padding: 30px;
+            box-shadow: 0 0 30px rgba(243, 156, 18, 0.4);
+            text-align: center;
+        }
+        h1 {
+            color: #f39c12;
+            margin-bottom: 10px;
+            font-size: 2.2rem;
+            text-shadow: 0 0 10px rgba(243, 156, 18, 0.5);
+        }
+        p {
+            font-size: 1.1rem;
+            color: #d1d8e0;
+        }
+        .btn {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            color: #fff;
+            border: none;
+            padding: 12px 25px;
+            font-size: 1.2rem;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-top: 15px;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(243, 156, 18, 0.3);
+        }
+        .btn:hover {
+            transform: scale(1.05);
+            background: linear-gradient(135deg, #e67e22, #d35400);
+        }
+        input[type="text"] {
+            padding: 12px 20px;
+            font-size: 1.1rem;
+            border-radius: 25px;
+            border: 2px solid #f39c12;
+            background: #111;
+            color: #fff;
+            width: 80%;
+            max-width: 350px;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .screen {
+            display: none;
+        }
+        .active-screen {
+            display: block;
+        }
+        .stats-bar {
+            display: flex;
+            justify-content: space-between;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 10px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 1rem;
+            border: 1px solid #483d8b;
+        }
+        .question-box {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid #3498db;
+            border-radius: 15px;
+            padding: 20px;
+            font-size: 1.3rem;
+            margin-bottom: 25px;
+            min-height: 90px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .option-btn {
+            background: #2c3e50;
+            color: #fff;
+            border: 2px solid #34495e;
+            padding: 15px;
+            font-size: 1.1rem;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: 0.2s;
+            text-align: center;
+        }
+        .option-btn:hover:not(:disabled) {
+            background: #3498db;
+            border-color: #2980b9;
+        }
+        .option-btn.correct {
+            background: #27ae60 !important;
+            border-color: #2ecc71 !important;
+        }
+        .option-btn.wrong {
+            background: #c0392b !important;
+            border-color: #e74c3c !important;
+        }
+        .option-btn.hidden-option {
+            visibility: hidden;
+            opacity: 0;
+            pointer-events: none;
+        }
+        .lifeline-btn {
+            background: #8e44ad;
+            border: 2px solid #9b59b6;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+        .lifeline-btn:hover:not(:disabled) {
+            background: #9b59b6;
+        }
+        .lifeline-btn:disabled {
+            background: #555;
+            border-color: #444;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+        .feedback {
+            font-size: 1.1rem;
+            margin-top: 15px;
+            font-weight: bold;
+            min-height: 30px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="game-container">
+
+    <!-- 1. شاشة البداية -->
+    <div id="start-screen" class="screen active-screen">
+        <h1>من سيريح المليون</h1>
+        <p>مرحباً بكِ في مسابقة الكيمياء الممتعة لدرس تركيب الذرة والنظائر!</p>
+        <p>أدخلي اسمكِ الكريم للبدء:</p>
+        <input type="text" id="player-name" placeholder="اسم الطالبة..." autocomplete="off">
+        <br>
+        <button class="btn" onclick="startGame()">ابدأ التحدي</button>
+    </div>
+
+    <!-- 2. شاشة اللعب والأسئلة -->
+    <div id="game-screen" class="screen">
+        <div class="stats-bar">
+            <div>الطالبة: <span id="display-name" style="color: #f39c12; font-weight: bold;"></span></div>
+            <div>النقاط: <span id="display-score" style="color: #2ecc71; font-weight: bold;">0</span> نقطة</div>
+            <div>السؤال: <span id="question-number">1</span>/10</div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <button id="lifeline-50" class="lifeline-btn" onclick="useFiftyFifty()">حذف خيارين (50:50)</button>
+            <div style="font-size: 0.9rem; color: #f39c12;">المستوى: <span id="question-level">سهل جداً</span></div>
+        </div>
+
+        <div class="question-box" id="question-text">
+            نص السؤال يظهر هنا...
+        </div>
+
+        <div class="options-grid" id="options-container">
+            <!-- الخيارات تظهر هنا -->
+        </div>
+
+        <div class="feedback" id="feedback-msg"></div>
+        <button id="next-btn" class="btn" style="display:none;" onclick="nextQuestion()">السؤال التالي</button>
+    </div>
+
+    <!-- 3. شاشة النهاية -->
+    <div id="end-screen" class="screen">
+        <h1>انتهت الرحلة!</h1>
+        <p>أحسنتِ صنعاً يا <span id="end-name" style="color: #f39c12; font-weight: bold;"></span></p>
+        <div style="font-size: 1.5rem; margin: 20px 0;">
+            نتيجتك النهائية: <span id="final-score" style="color: #2ecc71; font-weight: bold;">0</span> / 10
+        </div>
+        <div id="final-message" style="font-size: 1.2rem; color: #3498db; margin-bottom: 20px;"></div>
+        <button class="btn" onclick="restartGame()">إعادة اللعب</button>
+    </div>
+
+</div>
+
+<script>
+    const questions = [
+        {
+            q: "ما هو الجسيم ذو الشحنة الموجبة الذي يوجد داخل نواة الذرة؟",
+            options: ["النيوترون", "البروتون", "الإلكترون", "الفوتون"],
+            answer: 1
+        },
+        {
+            q: "تدور حول نواة الذرة جسيمات خفيفة ذات شحنة سالبة، ما هي؟",
+            options: ["الإلكترونات", "البروتونات", "النيوترونات", "النيوكليونات"],
+            answer: 0
+        },
+        {
+            q: "ما هي الجسيمات المتعادلة كهربائياً وتوجد داخل نواة الذرة؟",
+            options: ["الإلكترونات", "البروتونات", "النيوترونات", "ألفا"],
+            answer: 2
+        },
+        {
+            q: "تُعرف ذرات العنصر الواحد التي لها نفس العدد الذري وتختلف في العدد الكتلي باسم:",
+            options: ["الأيونات", "النظائر", "المتآصلات", "النظائر المشعة فقط"],
+            answer: 1
+        },
+        {
+            q: "مجموع عدد البروتونات والنيوترونات داخل نواة الذرة يسمى:",
+            options: ["العدد الذري", "العدد الكتلي", "الشحنة الكهربائية", "الكتلة المولية"],
+            answer: 1
+        },
+        {
+            q: "ما الذي يتطابق تماماً في نظائر العنصر الكيميائي الواحد؟",
+            options: ["عدد النيوترونات", "العدد الكتلي", "العدد الذري (عدد البروتونات)", "الكتلة الذرية"],
+            answer: 2
+        },
+        {
+            q: "ما هو العنصر الذي يطلق اسم 'الديوتيريوم' على أحد نظائره الشهيرة؟",
+            options: ["الهيدروجين", "الأكسجين", "الكربون", "النيتروجين"],
+            answer: 0
+        },
+        {
+            q: "معظم كتلة الذرة تتركز في أي جزء منها؟",
+            options: ["الإلكترونات الخارجية", "الغلاف الإلكتروني", "النواة", "الفراغ حول النواة"],
+            answer: 2
+        },
+        {
+            q: "إذا كان العدد الذري لعنصر الكربون يساوي 6، فهذا يعني أن عدد بروتوناته يساوي:",
+            options: ["6", "12", "14", "3"],
+            answer: 0
+        },
+        {
+            q: "أي مما يلي يختلف فيه نظيران لنفس العنصر؟",
+            options: ["عدد البروتونات", "عدد النيوترونات", "العدد الذري", "نوع العنصر"],
+            answer: 1
+        }
+    ];
+
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let playerName = "";
+    let lifelineUsed = false;
+    let answeredCurrent = false;
+
+    function startGame() {
+        const input = document.getElementById("player-name");
+        playerName = input.value.trim();
+        if (playerName === "") {
+            alert("الرجاء إدخال اسم الطالبة قبل البدء!");
+            return;
+        }
+        document.getElementById("display-name").innerText = playerName;
+        document.getElementById("start-screen").classList.remove("active-screen");
+        document.getElementById("game-screen").classList.add("active-screen");
+        loadQuestion();
+    }
+
+    function loadQuestion() {
+        answeredCurrent = false;
+        const feedbackEl = document.getElementById("feedback-msg");
+        feedbackEl.innerText = "";
+        document.getElementById("next-btn").style.display = "none";
+        
+        const qData = questions[currentQuestionIndex];
+        document.getElementById("question-number").innerText = currentQuestionIndex + 1;
+        document.getElementById("display-score").innerText = score;
+        document.getElementById("question-text").innerText = qData.q;
+
+        const optionsContainer = document.getElementById("options-container");
+        optionsContainer.innerHTML = "";
+
+        qData.options.forEach((opt, index) => {
+            const btn = document.createElement("button");
+            btn.className = "option-btn";
+            btn.innerText = opt;
+            btn.onclick = () => checkAnswer(index, btn);
+            optionsContainer.appendChild(btn);
+        });
+    }
+
+    function checkAnswer(selectedIndex, selectedBtn) {
+        if (answeredCurrent) return;
+        answeredCurrent = true;
+
+        const qData = questions[currentQuestionIndex];
+        const allButtons = document.querySelectorAll(".option-btn");
+        const feedbackEl = document.getElementById("feedback-msg");
+
+        allButtons.forEach(btn => btn.disabled = true);
+
+        if (selectedIndex === qData.answer) {
+            selectedBtn.classList.add("correct");
+            score++;
+            document.getElementById("display-score").innerText = score;
+            feedbackEl.style.color = "#2ecc71";
+            feedbackEl.innerHTML = "إجابة صحيحة ممتازة! أحسنتِ 🌟";
+        } else {
+            selectedBtn.classList.add("wrong");
+            allButtons[qData.answer].classList.add("correct");
+            feedbackEl.style.color = "#e74c3c";
+            feedbackEl.innerHTML = `إجابة خاطئة! الإجابة الصحيحة هي: ${qData.options[qData.answer]}`;
+        }
+
+        if (currentQuestionIndex < questions.length - 1) {
+            document.getElementById("next-btn").style.display = "inline-block";
+        } else {
+            setTimeout(showEndScreen, 2000);
+        }
+    }
+
+    function nextQuestion() {
+        currentQuestionIndex++;
+        loadQuestion();
+    }
+
+    function useFiftyFifty() {
+        if (lifelineUsed || answeredCurrent) return;
+        lifelineUsed = true;
+        document.getElementById("lifeline-50").disabled = true;
+
+        const qData = questions[currentQuestionIndex];
+        const allButtons = document.querySelectorAll(".option-btn");
+        let hiddenCount = 0;
+
+        allButtons.forEach((btn, index) => {
+            if (index !== qData.answer && hiddenCount < 2) {
+                btn.classList.add("hidden-option");
+                hiddenCount++;
+            }
+        });
+    }
+
+    function showEndScreen() {
+        document.getElementById("game-screen").classList.remove("active-screen");
+        document.getElementById("end-screen").classList.add("active-screen");
+        document.getElementById("end-name").innerText = playerName;
+        document.getElementById("final-score").innerText = score;
+
+        let msg = "";
+        if (score === 10) {
+            msg = "عالمة كيمياء مبدعة حقاً! العلامة الكاملة 🏆✨";
+        } else if (score >= 7) {
+            msg = "مستوى رائع جداً، فهمك لدرس النظائر ممتاز! 👏";
+        } else if (score >= 4) {
+            msg = "بداية موفقة، يمكنكِ مراجعة الدرس وتحقيق نتيجة أفضل! 💪";
+        } else {
+            msg = "حاولي مرة أخرى لقراءة درس تركيب الذرة والنظائر بعناية أكبر. 🧪";
+        }
+        document.getElementById("final-message").innerText = msg;
+    }
+
+    function restartGame() {
+        currentQuestionIndex = 0;
+        score = 0;
+        lifelineUsed = false;
+        document.getElementById("lifeline-50").disabled = false;
+        document.getElementById("end-screen").classList.remove("active-screen");
+        document.getElementById("start-screen").classList.add("active-screen");
+        document.getElementById("player-name").value = "";
+    }
+</script>
+
+</body>
+</html>
